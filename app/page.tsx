@@ -1,65 +1,255 @@
-import Image from "next/image";
+'use client';
 
-export default function Home() {
+import { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Card, CardHeader, CardTitle, CardContent, CardDescription, CardFooter } from '@/app/components/ui/Card';
+import { Badge } from '@/app/components/ui/Badge';
+import { Input } from '@/app/components/ui/Input';
+import { Button } from '@/app/components/ui/Button';
+import { Skeleton } from '@/app/components/ui/Skeleton';
+import { format } from 'date-fns';
+import { Search, Filter, BookOpen, Link as LinkIcon, Lightbulb, ExternalLink, MessageSquare } from 'lucide-react';
+import Link from 'next/link';
+
+interface KnowledgeItem {
+  id: number;
+  title: string;
+  content: string;
+  type: 'note' | 'link' | 'insight';
+  tags: string | string[];
+  summary?: string;
+  created_at: string;
+}
+
+export default function Dashboard() {
+  const [items, setItems] = useState<KnowledgeItem[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Filters
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedType, setSelectedType] = useState<string>('all');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
+
+  // Debounce search
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(searchQuery);
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
+
+  useEffect(() => {
+    async function fetchItems() {
+      setIsLoading(true);
+      try {
+        const params = new URLSearchParams();
+        if (debouncedSearch) params.append('q', debouncedSearch);
+        if (selectedType !== 'all') params.append('type', selectedType);
+
+        const res = await fetch(`/api/knowledge?${params.toString()}`);
+        if (!res.ok) throw new Error('Failed to fetch');
+        const data = await res.json();
+        setItems(data);
+      } catch (error) {
+        console.error(error);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+
+    fetchItems();
+  }, [debouncedSearch, selectedType]);
+
+  const getTypeIcon = (type: string) => {
+    switch (type) {
+      case 'note': return <BookOpen className="w-4 h-4" />;
+      case 'link': return <LinkIcon className="w-4 h-4" />;
+      case 'insight': return <Lightbulb className="w-4 h-4 text-purple-500" />;
+      default: return null;
+    }
+  };
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
+    <div className="space-y-8 pb-12">
+      {/* Header & Controls */}
+      <motion.div
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="flex flex-col gap-6"
+      >
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight mb-2">My Knowledge Base</h1>
+          <p className="text-neutral-500 dark:text-neutral-400">
+            Search, filter, and explore your captured insights.
           </p>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
+
+        <div className="flex flex-col sm:flex-row gap-4">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400" />
+            <Input
+              placeholder="Search by title, content, or tags..."
+              className="pl-9 h-11"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
             />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+          </div>
+          <div className="flex gap-2 shrink-0 overflow-x-auto pb-2 sm:pb-0">
+            {['all', 'note', 'insight', 'link'].map((type) => (
+              <Button
+                key={type}
+                variant={selectedType === type ? 'primary' : 'outline'}
+                className="capitalize h-11"
+                onClick={() => setSelectedType(type)}
+              >
+                {type}
+              </Button>
+            ))}
+          </div>
         </div>
-      </main>
+      </motion.div>
+
+      {/* Grid of Items */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {isLoading ? (
+          Array.from({ length: 4 }).map((_, i) => (
+            <Card key={i} className="min-h-[250px] flex flex-col">
+              <CardHeader className="gap-2">
+                <Skeleton className="h-6 w-3/4" />
+                <Skeleton className="h-4 w-1/4" />
+              </CardHeader>
+              <CardContent className="flex-1 space-y-2">
+                <Skeleton className="h-4 w-full" />
+                <Skeleton className="h-4 w-full" />
+                <Skeleton className="h-4 w-2/3" />
+              </CardContent>
+            </Card>
+          ))
+        ) : items.length === 0 ? (
+          <div className="col-span-full py-20 text-center text-neutral-500">
+            <Filter className="w-12 h-12 mx-auto mb-4 opacity-20" />
+            <p className="text-lg font-medium text-neutral-900 dark:text-neutral-100 mb-1">No items found</p>
+            <p>Try adjusting your search or filters, or capture something new.</p>
+          </div>
+        ) : (
+          <AnimatePresence mode="popLayout">
+            {items.map((item, index) => {
+              const tagsArray = item.tags
+                ? (Array.isArray(item.tags)
+                  ? item.tags
+                  : item.tags.split(',').map((t: string) => t.trim()).filter(Boolean))
+                : [];
+              const sourceMatch = item.content.match(/Source:\s*(https?:\/\/[^\s]+)/);
+              const sourceUrl = sourceMatch ? sourceMatch[1] : null;
+              // Clean content by removing the auto-appended source if it exists for display
+              const displayContent = item.content.replace(/Source:\s*(https?:\/\/[^\s]+)/, '').trim();
+
+              return (
+                <motion.div
+                  key={item.id}
+                  layout
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.95 }}
+                  transition={{ duration: 0.2, delay: index * 0.05 }}
+                >
+                  <Card className="h-full flex flex-col group hover:border-neutral-300 dark:hover:border-neutral-700 transition-colors overflow-hidden">
+                    <CardHeader className="pb-3">
+                      <div className="flex justify-between items-start gap-4 mb-2">
+                        <Badge variant={item.type as any} className="capitalize flex gap-1.5 items-center">
+                          {getTypeIcon(item.type)}
+                          {item.type}
+                        </Badge>
+                        <span className="text-xs text-neutral-400 tabular-nums">
+                          {format(new Date(item.created_at), 'MMM d, yyyy')}
+                        </span>
+                      </div>
+                      <CardTitle className="line-clamp-2 leading-tight group-hover:text-neutral-700 dark:group-hover:text-neutral-300 transition-colors">
+                        {item.title}
+                      </CardTitle>
+                    </CardHeader>
+
+                    <CardContent className="flex-1 pb-4">
+                      {item.summary ? (
+                        <div className="bg-neutral-50 dark:bg-neutral-900/50 p-3 rounded-md mb-4 border border-neutral-100 dark:border-neutral-800">
+                          <p className="text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1 flex items-center gap-1.5">
+                            <Sparkles className="w-3.5 h-3.5 text-purple-500" /> AI Summary
+                          </p>
+                          <p className="text-sm text-neutral-600 dark:text-neutral-400 leading-relaxed">
+                            {item.summary}
+                          </p>
+                        </div>
+                      ) : null}
+
+                      <p className="text-sm text-neutral-600 dark:text-neutral-400 line-clamp-4 whitespace-pre-wrap">
+                        {displayContent}
+                      </p>
+                    </CardContent>
+
+                    <CardFooter className="pt-0 flex flex-wrap gap-2 justify-between items-end">
+                      <div className="flex flex-wrap gap-1.5">
+                        {tagsArray.slice(0, 3).map((tag, i) => (
+                          <Badge key={i} variant="secondary" className="px-2 font-medium text-xs">
+                            #{tag}
+                          </Badge>
+                        ))}
+                        {tagsArray.length > 3 && (
+                          <Badge variant="secondary" className="px-2 font-medium text-xs">
+                            +{tagsArray.length - 3}
+                          </Badge>
+                        )}
+                      </div>
+                      {sourceUrl && (
+                        <a
+                          href={sourceUrl}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="text-xs flex items-center gap-1 text-neutral-500 hover:text-neutral-900 dark:hover:text-neutral-100 transition-colors"
+                        >
+                          Source <ExternalLink className="w-3 h-3" />
+                        </a>
+                      )}
+
+                      <div className="w-full flex justify-end mt-4 pt-3 border-t border-neutral-100 dark:border-neutral-800">
+                        <Link href={`/item/${item.id}`}>
+                          <Button
+                            variant="primary"
+                            size="sm"
+                            className="h-8 text-xs font-medium"
+                          >
+                            <MessageSquare className="w-3.5 h-3.5 mr-1.5" />
+                            Open Item & Chat
+                          </Button>
+                        </Link>
+                      </div>
+                    </CardFooter>
+                  </Card>
+                </motion.div>
+              );
+            })}
+          </AnimatePresence>
+        )}
+      </div>
     </div>
+  );
+}
+
+// Need to import Sparkles explicitly at the top
+function Sparkles(props: any) {
+  return (
+    <svg
+      {...props}
+      xmlns="http://www.w3.org/2000/svg"
+      width="24"
+      height="24"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a4.42 4.42 0 0 1 0-8.526L8.5 2.373A2 2 0 0 0 9.937.937l1.582-6.135a4.42 4.42 0 0 1 8.526 0l1.582 6.135a2 2 0 0 0 1.437 1.436l6.135 1.582a4.42 4.42 0 0 1 0 8.526l-6.135 1.582a2 2 0 0 0-1.437 1.436l-1.582 6.135a4.42 4.42 0 0 1-8.526 0l-1.582-6.135z" />
+    </svg>
   );
 }
