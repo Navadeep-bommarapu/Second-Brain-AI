@@ -42,9 +42,9 @@ export default async function ItemPage({ params }: { params: Promise<{ id: strin
                 </Link>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 h-full min-h-0">
+            <div className="flex flex-col lg:flex-row gap-8 lg:h-full lg:min-h-0">
                 {/* Left Column: Content */}
-                <div className="flex flex-col overflow-y-auto pr-4 border-r border-neutral-100 dark:border-neutral-800 pb-10">
+                <div className="flex-1 min-w-0 flex flex-col lg:overflow-y-auto lg:pr-6 lg:border-r border-neutral-100 dark:border-neutral-800 pb-4 lg:pb-10">
                     <div className="flex justify-between items-start gap-4 mb-4">
                         <Badge variant={item.type as any} className="capitalize flex gap-1.5 items-center">
                             {getTypeIcon(item.type)}
@@ -96,7 +96,7 @@ export default async function ItemPage({ params }: { params: Promise<{ id: strin
                 </div>
 
                 {/* Right Column: Contextual Chat */}
-                <div className="flex flex-col h-[calc(100vh-140px)] sticky top-0 rounded-2xl overflow-hidden border border-neutral-200 dark:border-neutral-800 shadow-sm">
+                <div className="w-full lg:w-[400px] xl:w-[500px] shrink-0 flex flex-col h-[500px] lg:h-[calc(100dvh-180px)] lg:sticky top-0 rounded-2xl overflow-hidden border border-neutral-200 dark:border-neutral-800 shadow-sm mb-8 lg:mb-0">
                     <CardChat itemId={item.id} />
                 </div>
             </div>
