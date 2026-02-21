@@ -5,6 +5,7 @@ import { Badge } from '@/app/components/ui/Badge';
 import { format } from 'date-fns';
 import { BookOpen, Link as LinkIcon, Lightbulb, ExternalLink, ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
+import { ItemActions } from '@/app/components/ItemActions';
 
 export default async function ItemPage({ params }: { params: Promise<{ id: string }> }) {
     const resolvedParams = await params;
@@ -50,9 +51,12 @@ export default async function ItemPage({ params }: { params: Promise<{ id: strin
                             {getTypeIcon(item.type)}
                             {item.type}
                         </Badge>
-                        <span className="text-sm text-neutral-400 tabular-nums">
-                            {format(new Date(item.created_at), 'MMMM d, yyyy')}
-                        </span>
+                        <div className="flex items-center gap-4">
+                            <span className="text-sm text-neutral-400 tabular-nums">
+                                {format(new Date(item.created_at), 'MMMM d, yyyy')}
+                            </span>
+                            <ItemActions itemId={item.id} />
+                        </div>
                     </div>
 
                     <h1 className="text-3xl font-bold tracking-tight mb-6">{item.title}</h1>
@@ -100,6 +104,6 @@ export default async function ItemPage({ params }: { params: Promise<{ id: strin
                     <CardChat itemId={item.id} />
                 </div>
             </div>
-        </div>
+        </div >
     );
 }

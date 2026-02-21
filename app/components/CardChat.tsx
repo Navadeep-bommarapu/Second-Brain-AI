@@ -16,15 +16,13 @@ export function CardChat({ itemId, onClose }: { itemId: number; onClose?: () => 
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     }, [messages]);
 
-    const handleCustomSubmit = async (e?: React.FormEvent) => {
-        if (e) e.preventDefault();
-        if (!input.trim() || isLoading) return;
+    const submitMessage = async (textToSubmit: string) => {
+        if (!textToSubmit.trim() || isLoading) return;
 
-        const contentToSend = input;
         setInput('');
         setIsLoading(true);
 
-        const newMessages = [...messages, { id: Date.now().toString(), role: 'user', content: contentToSend }];
+        const newMessages = [...messages, { id: Date.now().toString(), role: 'user', content: textToSubmit }];
         setMessages(newMessages);
 
         try {
@@ -63,6 +61,11 @@ export function CardChat({ itemId, onClose }: { itemId: number; onClose?: () => 
         }
     };
 
+    const handleCustomSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        await submitMessage(input);
+    };
+
     return (
         <div className="flex flex-col h-full bg-neutral-50/50 dark:bg-neutral-900/30">
             <div className="flex items-center justify-between px-4 py-2 border-b border-neutral-100 dark:border-neutral-800 bg-neutral-50 dark:bg-neutral-900">
@@ -83,16 +86,6 @@ export function CardChat({ itemId, onClose }: { itemId: number; onClose?: () => 
                             <Bot className="w-8 h-8 opacity-20 mx-auto" />
                             <p className="text-sm">Ask about this specific item.</p>
                         </div>
-                        <button
-                            onClick={() => {
-                                const e = { preventDefault: () => { } } as React.FormEvent;
-                                setInput("Summarize this item");
-                                setTimeout(() => handleCustomSubmit(e), 10);
-                            }}
-                            className="text-xs bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 hover:border-neutral-300 dark:hover:border-neutral-600 px-3 py-1.5 rounded-full transition-colors flex items-center gap-2"
-                        >
-                            <span>✨</span> Summarize this
-                        </button>
                     </div>
                 ) : (
                     messages.map((m: any) => (
@@ -129,7 +122,25 @@ export function CardChat({ itemId, onClose }: { itemId: number; onClose?: () => 
                 <div ref={messagesEndRef} />
             </div>
 
-            <div className="p-3 border-t border-neutral-100 dark:border-neutral-800">
+            <div className="p-3 border-t border-neutral-100 dark:border-neutral-800 flex flex-col gap-2">
+                {messages.length === 0 && (
+                    <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
+                        <button
+                            type="button"
+                            onClick={() => submitMessage("Summarize this item ✨")}
+                            className="shrink-0 text-xs bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 hover:border-neutral-300 dark:hover:border-neutral-600 px-3 py-1.5 rounded-full transition-colors flex items-center gap-1.5 text-neutral-700 dark:text-neutral-300 font-medium"
+                        >
+                            <span>✨</span> Summarize this
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => submitMessage("What are the key takeaways?")}
+                            className="shrink-0 text-xs bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 hover:border-neutral-300 dark:hover:border-neutral-600 px-3 py-1.5 rounded-full transition-colors flex items-center gap-1.5 text-neutral-700 dark:text-neutral-300 font-medium"
+                        >
+                            Key takeaways
+                        </button>
+                    </div>
+                )}
                 <form className="flex w-full gap-2 items-center" onSubmit={handleCustomSubmit}>
                     <Input
                         value={input}

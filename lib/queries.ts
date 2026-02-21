@@ -85,3 +85,68 @@ export async function getKnowledgeItemById(id: number): Promise<KnowledgeItem | 
         client.release();
     }
 }
+
+export type UpdateKnowledgeItem = Partial<NewKnowledgeItem>;
+
+export async function updateKnowledgeItem(id: number, updates: UpdateKnowledgeItem): Promise<KnowledgeItem | undefined> {
+    const client = await pool.connect();
+    try {
+        const setClauses: string[] = [];
+        const values: any[] = [id];
+        let valueCount = 2;
+
+        if (updates.title !== undefined) {
+            setClauses.push(`title = $${valueCount++}`);
+            values.push(updates.title);
+        }
+        if (updates.content !== undefined) {
+            setClauses.push(`content = $${valueCount++}`);
+            values.push(updates.content);
+        }
+        if (updates.type !== undefined) {
+            setClauses.push(`type = $${valueCount++}`);
+            values.push(updates.type);
+        }
+        if (updates.summary !== undefined) {
+            setClauses.push(`summary = $${valueCount++}`);
+            values.push(updates.summary);
+        }
+        if (updates.tags !== undefined) {
+            let tagsValue: string[] = [];
+            if (Array.isArray(updates.tags)) {
+                tagsValue = updates.tags;
+            } else if (typeof updates.tags === 'string' && updates.tags.trim() !== '') {
+                tagsValue = updates.tags.split(',').map(t => t.trim()).filter(Boolean);
+            }
+            setClauses.push(`tags = $${valueCount++}`);
+            values.push(tagsValue);
+        }
+
+        if (setClauses.length === 0) {
+            return undefined; // Nothing to update
+        }
+
+        const query = `
+            UPDATE knowledge 
+            SET ${setClauses.join(', ')} 
+            WHERE id = $1 
+            RETURNING *;
+        `;
+
+        const result = await client.query(query, values);
+        return result.rows[0];
+    } finally {
+        client.release();
+    }
+}
+
+export async function deleteKnowledgeItem(id: number): Promise<boolean> {
+    const client = await pool.connect();
+    try {
+        const query = 'DELETE FROM knowledge WHERE id = $1 RETURNING id;';
+        const result = await client.query(query, [id]);
+        return result.rowCount ? result.rowCount > 0 : false;
+    } finally {
+        client.release();
+    }
+}

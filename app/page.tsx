@@ -8,7 +8,7 @@ import { Input } from '@/app/components/ui/Input';
 import { Button } from '@/app/components/ui/Button';
 import { Skeleton } from '@/app/components/ui/Skeleton';
 import { format } from 'date-fns';
-import { Search, Filter, BookOpen, Link as LinkIcon, Lightbulb, ExternalLink, MessageSquare } from 'lucide-react';
+import { Search, Filter, BookOpen, Link as LinkIcon, Lightbulb, ExternalLink, MessageSquare, Trash2, Edit3 } from 'lucide-react';
 import Link from 'next/link';
 
 interface KnowledgeItem {
@@ -59,6 +59,20 @@ export default function Dashboard() {
 
     fetchItems();
   }, [debouncedSearch, selectedType]);
+
+  const handleDelete = async (id: number) => {
+    if (!confirm('Are you sure you want to delete this item?')) return;
+
+    try {
+      const res = await fetch(`/api/knowledge/${id}`, { method: 'DELETE' });
+      if (!res.ok) throw new Error('Failed to delete');
+
+      setItems(prev => prev.filter(item => item.id !== id));
+    } catch (error) {
+      console.error('Error deleting item:', error);
+      alert('Failed to delete item.');
+    }
+  };
 
   const getTypeIcon = (type: string) => {
     switch (type) {
@@ -210,7 +224,21 @@ export default function Dashboard() {
                         </a>
                       )}
 
-                      <div className="w-full flex justify-end mt-4 pt-3 border-t border-neutral-100 dark:border-neutral-800">
+                      <div className="w-full flex justify-between items-center mt-4 pt-3 border-t border-neutral-100 dark:border-neutral-800">
+                        <div className="flex items-center gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <Link href={`/item/${item.id}/edit`}>
+                            <button className="p-1.5 text-neutral-400 hover:text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded-md transition-colors" title="Edit Item">
+                              <Edit3 className="w-4 h-4" />
+                            </button>
+                          </Link>
+                          <button
+                            onClick={() => handleDelete(item.id)}
+                            className="p-1.5 text-neutral-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-md transition-colors"
+                            title="Delete Item"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
                         <Link href={`/item/${item.id}`}>
                           <Button
                             variant="primary"
@@ -218,7 +246,7 @@ export default function Dashboard() {
                             className="h-8 text-xs font-medium"
                           >
                             <MessageSquare className="w-3.5 h-3.5 mr-1.5" />
-                            Open Item & Chat
+                            Open
                           </Button>
                         </Link>
                       </div>
