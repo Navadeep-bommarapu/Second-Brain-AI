@@ -45,7 +45,7 @@ export async function POST(req: Request) {
 
         const formattedMessages = messages.map((m: any) => ({
             role: m.role,
-            content: m.content
+            content: m.content || (m.parts && m.parts.length > 0 ? m.parts[0].text : ''),
         }));
 
         const result = await streamText({

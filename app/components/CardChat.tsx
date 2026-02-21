@@ -27,8 +27,7 @@ export function CardChat({ itemId, onClose }: { itemId: number; onClose?: () => 
         const contentToSend = input;
         setInput('');
 
-        // @ts-ignore
-        await sendMessage({ role: 'user', content: contentToSend });
+        await sendMessage({ text: contentToSend });
     };
 
     return (
@@ -64,7 +63,7 @@ export function CardChat({ itemId, onClose }: { itemId: number; onClose?: () => 
                                     ? 'bg-neutral-900 text-white dark:bg-white dark:text-neutral-900 rounded-tr-sm'
                                     : 'bg-white border border-neutral-200 text-neutral-800 dark:bg-neutral-800 dark:border-neutral-700 dark:text-neutral-200 rounded-tl-sm'
                                     }`}>
-                                    <p className="whitespace-pre-wrap leading-relaxed">{m.content}</p>
+                                    <p className="whitespace-pre-wrap leading-relaxed">{m.content || m.parts?.[0]?.text || ''}</p>
                                 </div>
                             </div>
                         </div>
