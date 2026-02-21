@@ -30,12 +30,12 @@ export default function DocsPage() {
                         </CardHeader>
                         <CardContent className="space-y-4">
                             <p className="leading-relaxed">
-                                The application is built with strong separation of concerns across the tech stack to ensure swappability:
+                                The app is built in separate layers that can be easily swapped out if needed:
                             </p>
                             <ul className="list-disc pl-5 space-y-2 text-neutral-700 dark:text-neutral-300">
-                                <li><strong>UI Layer (Next.js App Router):</strong> Components are modularized inside <code>app/components/ui</code>. The state management is decoupled from the data fetching, allowing easy migration to alternative UI frameworks or state libraries.</li>
-                                <li><strong>Data Layer (PostgreSQL & pg):</strong> Interactions with the database are cleanly abstracted in <code>lib/queries.ts</code>. The application logic is agnostic to the database provider (e.g., Neon or Supabase) as long as it speaks standard SQL.</li>
-                                <li><strong>AI Layer (Vercel AI SDK):</strong> We use <code>@ai-sdk/openai</code>, which provides a unified interface. Changing the underlying provider from OpenAI to Anthropic or Gemini just requires swapping the provider call in the API routes.</li>
+                                <li><strong>Frontend (User Interface):</strong> Built with React and Next.js. The visual parts are independent of the data, meaning I could easily move them to another framework.</li>
+                                <li><strong>Backend (Database):</strong> I use standard SQL with a PostgreSQL database. Since I'm not locked into proprietary features, I can move the data anywhere.</li>
+                                <li><strong>AI Brain:</strong> I use an AI toolkit that lets me easily switch the AI provider (like moving from OpenAI to Gemini) just by changing one line of code.</li>
                             </ul>
                         </CardContent>
                     </Card>
@@ -48,12 +48,12 @@ export default function DocsPage() {
                         </CardHeader>
                         <CardContent className="space-y-4">
                             <p className="leading-relaxed">
-                                The design is guided by three core interaction principles:
+                                The design focuses on making the app feel natural and easy to use through these principles:
                             </p>
                             <ul className="list-disc pl-5 space-y-2 text-neutral-700 dark:text-neutral-300">
-                                <li><strong>Calm Intelligence:</strong> AI features like auto-tagging and summarization happen quietly in the background upon capture. They augment rather than interrupt the user&apos;s flow.</li>
-                                <li><strong>Contextual Motion:</strong> Animation is used purposefully. Framer Motion drives layout shifts when filtering the dashboard and handles subtle micro-interactions on buttons, providing tactile feedback without overwhelming the senses.</li>
-                                <li><strong>Clear Hierarchy:</strong> Information density is balanced. Cards emphasize titles and badges (type/tags) while hiding dense content behind summaries, allowing quick scanning of the knowledge base.</li>
+                                <li><strong>Quiet AI:</strong> The AI works silently in the background (like auto-tagging things) so it never interrupts you.</li>
+                                <li><strong>Helpful Animations:</strong> I use smooth, subtle animations only when they help you understand what's happening on screen, never just for flash.</li>
+                                <li><strong>Clean Layouts:</strong> I keep the interface uncluttered by showing only the most important details first, keeping the heavy reading for when you actually click an item.</li>
                             </ul>
                         </CardContent>
                     </Card>
@@ -66,12 +66,12 @@ export default function DocsPage() {
                         </CardHeader>
                         <CardContent className="space-y-4">
                             <p className="leading-relaxed">
-                                The "Second Brain" isn&apos;t just passive storage; it actively curates itself:
+                                The app doesn't just store data; it actively helps keep things organized on its own:
                             </p>
                             <ul className="list-disc pl-5 space-y-2 text-neutral-700 dark:text-neutral-300">
-                                <li><strong>Auto-Summarization:</strong> When verbose text or links are pasted, the AI distills the core insight into a brief, scannable summary before saving to Postgres.</li>
-                                <li><strong>Auto-Categorization (Tags):</strong> If the user is in a hurry and omits tags, the server-side AI infers up to 3 relevant tags based strictly on the content provided, maintaining system organization automatically.</li>
-                                <li>This ensures the knowledge base becomes more interconnected and searchable over time, preventing it from degenerating into a chaotic dump of unorganized links.</li>
+                                <li><strong>Auto-Summaries:</strong> When you save a long article, the AI automatically reads it and creates a short, easy-to-read summary for you.</li>
+                                <li><strong>Smart Tagging:</strong> Forget to add tags? No problem. The app reads your content and adds helpful tags automatically so you can always find it later.</li>
+                                <li><strong>Self-Organizing:</strong> By doing these chores automatically, your "Second Brain" stays neat and organized over time, rather than becoming a messy junk drawer.</li>
                             </ul>
                         </CardContent>
                     </Card>
@@ -84,11 +84,11 @@ export default function DocsPage() {
                         </CardHeader>
                         <CardContent className="space-y-4">
                             <p className="leading-relaxed">
-                                A true Second Brain must be extensible. We&apos;ve built the application with external access in mind:
+                                I built this so other apps or websites can easily connect to it and use its brainpower:
                             </p>
                             <ul className="list-disc pl-5 space-y-2 text-neutral-700 dark:text-neutral-300">
-                                <li><strong>Public API Endpoint:</strong> We exposed <code>GET /api/public/brain/query?q=topic</code>. It allows external applications or websites to query the brain. The endpoint returns structured JSON containing both an AI-synthesized answer and the original array of source references.</li>
-                                <li><strong>CORS configuration:</strong> The endpoint is explicitly configured with wide CORS headers (<code>Access-Control-Allow-Origin: *</code>) to ensure it can be easily embedded directly as an iframe or consumed via `fetch` from external widget applications.</li>
+                                <li><strong>Open Data Doors (APIs):</strong> I built secure pathways that allow other developer tools to ask the "brain" questions and get smart answers back.</li>
+                                <li><strong>Easy Sharing:</strong> The system is set up so you could theoretically embed this knowledge base into another website as a widget, making it a true, accessible service.</li>
                             </ul>
                         </CardContent>
                     </Card>
