@@ -1,33 +1,66 @@
 'use client';
 
-import { useChat } from '@ai-sdk/react';
 import { useState, useRef, useEffect } from 'react';
 import { Button } from './ui/Button';
 import { Input } from './ui/Input';
 import { Send, Bot, User, X } from 'lucide-react';
 
 export function CardChat({ itemId, onClose }: { itemId: number; onClose?: () => void }) {
-    const { messages, sendMessage, status, setMessages } = useChat({
-        api: '/api/chat',
-        body: { itemId }
-    } as any);
-
+    const [messages, setMessages] = useState<any[]>([]);
     const [input, setInput] = useState('');
+    const [isLoading, setIsLoading] = useState(false);
+
     const messagesEndRef = useRef<HTMLDivElement>(null);
-    const isLoading = status === 'streaming' || status === 'submitted';
 
     useEffect(() => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     }, [messages]);
 
-    const handleCustomSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
+    const handleCustomSubmit = async (e?: React.FormEvent) => {
+        if (e) e.preventDefault();
         if (!input.trim() || isLoading) return;
 
         const contentToSend = input;
         setInput('');
+        setIsLoading(true);
 
-        await sendMessage({ text: contentToSend });
+        const newMessages = [...messages, { id: Date.now().toString(), role: 'user', content: contentToSend }];
+        setMessages(newMessages);
+
+        try {
+            const res = await fetch('/api/chat', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ messages: newMessages, itemId })
+            });
+
+            if (!res.ok) throw new Error('Failed to fetch');
+
+            const reader = res.body?.getReader();
+            const decoder = new TextDecoder();
+            let accumulatedResponse = '';
+
+            setMessages((prev) => [...prev, { id: (Date.now() + 1).toString(), role: 'assistant', content: '' }]);
+
+            if (reader) {
+                while (true) {
+                    const { done, value } = await reader.read();
+                    if (done) break;
+                    const chunkText = decoder.decode(value, { stream: true });
+                    accumulatedResponse += chunkText;
+
+                    setMessages((prev) => {
+                        const updated = [...prev];
+                        updated[updated.length - 1].content = accumulatedResponse;
+                        return updated;
+                    });
+                }
+            }
+        } catch (error) {
+            console.error(error);
+        } finally {
+            setIsLoading(false);
+        }
     };
 
     return (
@@ -45,9 +78,21 @@ export function CardChat({ itemId, onClose }: { itemId: number; onClose?: () => 
 
             <div className="flex-1 overflow-y-auto p-4 space-y-4">
                 {messages.length === 0 ? (
-                    <div className="h-full flex flex-col items-center justify-center text-center text-neutral-400 space-y-2 py-8">
-                        <Bot className="w-8 h-8 opacity-20" />
-                        <p className="text-sm">Ask about this specific item.</p>
+                    <div className="h-full flex flex-col items-center justify-center text-center text-neutral-400 space-y-4 py-8">
+                        <div className="space-y-2">
+                            <Bot className="w-8 h-8 opacity-20 mx-auto" />
+                            <p className="text-sm">Ask about this specific item.</p>
+                        </div>
+                        <button
+                            onClick={() => {
+                                const e = { preventDefault: () => { } } as React.FormEvent;
+                                setInput("Summarize this item");
+                                setTimeout(() => handleCustomSubmit(e), 10);
+                            }}
+                            className="text-xs bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 hover:border-neutral-300 dark:hover:border-neutral-600 px-3 py-1.5 rounded-full transition-colors flex items-center gap-2"
+                        >
+                            <span>✨</span> Summarize this
+                        </button>
                     </div>
                 ) : (
                     messages.map((m: any) => (

@@ -1,11 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { generateText } from 'ai';
 import { getKnowledgeItems } from '@/lib/queries';
-import { createGoogleGenerativeAI } from '@ai-sdk/google';
+import { GoogleGenerativeAI } from '@google/generative-ai';
 
-const google = createGoogleGenerativeAI({
-    apiKey: process.env.GOOGLE_API_KEY || '',
-});
+const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY || '');
 
 export async function GET(req: NextRequest) {
     const searchParams = req.nextUrl.searchParams;
@@ -33,11 +30,9 @@ export async function GET(req: NextRequest) {
         if (relevantItems.length > 0 && process.env.GOOGLE_API_KEY) {
             const contextString = relevantItems.map(item => `Title: ${item.title}\nContent: ${item.content}`).join('\n\n');
 
-            const { text } = await generateText({
-                model: google('gemini-2.5-flash'),
-                prompt: `You are answering a query from a user's personal knowledge base.\n\nQuery: ${query}\n\nContext:\n${contextString}\n\nAnswer concisely based ONLY on the provided context.`,
-            });
-            answer = text.trim();
+            const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+            const result = await model.generateContent(`You are answering a query from a user's personal knowledge base.\n\nQuery: ${query}\n\nContext:\n${contextString}\n\nAnswer concisely based ONLY on the provided context.`);
+            answer = result.response.text().trim();
         } else if (relevantItems.length > 0) {
             answer = `Found ${relevantItems.length} related items, but AI synthesis is disabled.`;
         }

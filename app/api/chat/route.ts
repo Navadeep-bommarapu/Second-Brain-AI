@@ -1,12 +1,9 @@
-import { createGoogleGenerativeAI } from '@ai-sdk/google';
-import { streamText } from 'ai';
+import { GoogleGenerativeAI } from '@google/generative-ai';
 import { getKnowledgeItemById } from '@/lib/queries';
 
 export const maxDuration = 30;
 
-const google = createGoogleGenerativeAI({
-    apiKey: process.env.GOOGLE_API_KEY || '',
-});
+const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY || '');
 
 export async function POST(req: Request) {
     try {
@@ -43,18 +40,45 @@ export async function POST(req: Request) {
       Answer the user's queries specifically regarding the focused context if applicable. Keep your responses concise, helpful, and formatted beautifully using markdown.
     `;
 
-        const formattedMessages = messages.map((m: any) => ({
-            role: m.role,
-            content: m.content || (m.parts && m.parts.length > 0 ? m.parts[0].text : ''),
-        }));
-
-        const result = await streamText({
-            model: google('gemini-2.5-flash'),
-            system: systemPrompt,
-            messages: formattedMessages,
+        const model = genAI.getGenerativeModel({
+            model: "gemini-2.5-flash",
+            systemInstruction: systemPrompt
         });
 
-        return result.toTextStreamResponse();
+        const history = messages.slice(0, -1).map((m: any) => ({
+            role: m.role === 'user' ? 'user' : 'model',
+            parts: [{ text: m.content || (m.parts && m.parts.length > 0 ? m.parts[0].text : '') }]
+        }));
+
+        const lastMessage = messages[messages.length - 1];
+        const prompt = lastMessage.content || (lastMessage.parts && lastMessage.parts.length > 0 ? lastMessage.parts[0].text : '');
+
+        const chat = model.startChat({ history });
+        const result = await chat.sendMessageStream(prompt);
+
+        const encoder = new TextEncoder();
+        const readable = new ReadableStream({
+            async start(controller) {
+                try {
+                    for await (const chunk of result.stream) {
+                        const chunkText = chunk.text();
+                        if (chunkText) {
+                            controller.enqueue(encoder.encode(chunkText));
+                        }
+                    }
+                    controller.close();
+                } catch (e) {
+                    controller.error(e);
+                }
+            }
+        });
+
+        return new Response(readable, {
+            headers: {
+                'Content-Type': 'text/plain; charset=utf-8',
+                'Transfer-Encoding': 'chunked'
+            }
+        });
     } catch (error) {
         console.error('Chat API Error:', error);
         return new Response(JSON.stringify({ error: 'Failed to process chat request' }), {

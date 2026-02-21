@@ -1,11 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createKnowledgeItem, getKnowledgeItems } from '@/lib/queries';
-import { generateText } from 'ai';
-import { createGoogleGenerativeAI } from '@ai-sdk/google';
+import { GoogleGenerativeAI } from '@google/generative-ai';
 
-const google = createGoogleGenerativeAI({
-    apiKey: process.env.GOOGLE_API_KEY || '',
-});
+const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY || '');
 
 export async function GET(req: NextRequest) {
     const searchParams = req.nextUrl.searchParams;
@@ -37,18 +34,14 @@ export async function POST(req: NextRequest) {
         // Attempt AI Summarization & Auto-tagging if GOOGLE_API_KEY is present
         if (process.env.GOOGLE_API_KEY) {
             try {
-                const { text: generatedSummary } = await generateText({
-                    model: google('gemini-2.5-flash'),
-                    prompt: `Summarize the following content in 1-2 thoughtful sentences:\n\nTitle: ${title}\nContent:\n${content}`,
-                });
-                summary = generatedSummary.trim();
+                const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+
+                const summaryResult = await model.generateContent(`Summarize the following content in 1-2 thoughtful sentences:\n\nTitle: ${title}\nContent:\n${content}`);
+                summary = summaryResult.response.text().trim();
 
                 if (!finalTags || finalTags.trim() === '') {
-                    const { text: generatedTags } = await generateText({
-                        model: google('gemini-2.5-flash'),
-                        prompt: `Extract exactly 3 concise, comma-separated tags (only letters and commas) from the following text:\n\nTitle: ${title}\nContent:\n${content}`,
-                    });
-                    finalTags = generatedTags.trim().replace(/\s+/g, '').toLowerCase(); // Clean up tags
+                    const tagsResult = await model.generateContent(`Extract exactly 3 concise, comma-separated tags (only letters and commas) from the following text:\n\nTitle: ${title}\nContent:\n${content}`);
+                    finalTags = tagsResult.response.text().trim().replace(/\s+/g, '').toLowerCase(); // Clean up tags
                 }
             } catch (aiError) {
                 console.error('AI Processing Error (Skipping enhancements):', aiError);
