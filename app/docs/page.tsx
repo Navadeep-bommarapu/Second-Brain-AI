@@ -35,7 +35,7 @@ export default function DocsPage() {
                             <ul className="list-disc pl-5 space-y-2 text-neutral-700 dark:text-neutral-300">
                                 <li><strong>Frontend (User Interface):</strong> Built with React and Next.js. The visual parts are independent of the data, meaning I could easily move them to another framework.</li>
                                 <li><strong>Backend (Database):</strong> I use standard SQL with a PostgreSQL database. Since I'm not locked into proprietary features, I can move the data anywhere.</li>
-                                <li><strong>AI Brain:</strong> I use an AI toolkit that lets me easily switch the AI provider (like moving from OpenAI to Gemini) just by changing one line of code.</li>
+                                <li><strong>AI Brain:</strong> I use an AI toolkit that lets me easily switch the AI provider (like moving from Gemini to Anthropic) just by changing one line of code.</li>
                             </ul>
                         </CardContent>
                     </Card>
