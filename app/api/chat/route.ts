@@ -1,8 +1,12 @@
-import { google } from '@ai-sdk/google';
+import { createGoogleGenerativeAI } from '@ai-sdk/google';
 import { streamText } from 'ai';
 import { getKnowledgeItemById } from '@/lib/queries';
 
 export const maxDuration = 30;
+
+const google = createGoogleGenerativeAI({
+    apiKey: process.env.GOOGLE_API_KEY || '',
+});
 
 export async function POST(req: Request) {
     try {

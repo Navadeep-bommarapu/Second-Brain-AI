@@ -1,7 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { google } from '@ai-sdk/google';
 import { generateText } from 'ai';
 import { getKnowledgeItems } from '@/lib/queries';
+import { createGoogleGenerativeAI } from '@ai-sdk/google';
+
+const google = createGoogleGenerativeAI({
+    apiKey: process.env.GOOGLE_API_KEY || '',
+});
 
 export async function GET(req: NextRequest) {
     const searchParams = req.nextUrl.searchParams;
