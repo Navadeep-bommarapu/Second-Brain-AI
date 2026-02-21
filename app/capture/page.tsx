@@ -6,8 +6,15 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter }
 import { Button } from '@/app/components/ui/Button';
 import { Input } from '@/app/components/ui/Input';
 import { Textarea } from '@/app/components/ui/Textarea';
-import { Sparkles, Save, CheckCircle2 } from 'lucide-react';
+import { Sparkles, Save, CheckCircle2, BookOpen, Link as LinkIcon, Lightbulb } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { CustomSelect } from '@/app/components/ui/CustomSelect';
+
+const TYPE_OPTIONS = [
+    { value: 'note', label: 'Note', icon: <BookOpen className="w-4 h-4" /> },
+    { value: 'insight', label: 'Insight', icon: <Lightbulb className="w-4 h-4 text-purple-500" /> },
+    { value: 'link', label: 'Link', icon: <LinkIcon className="w-4 h-4" /> },
+];
 
 export default function CapturePage() {
     const router = useRouter();
@@ -107,16 +114,12 @@ export default function CapturePage() {
 
                             <div className="space-y-2">
                                 <label htmlFor="type" className="text-sm font-medium leading-none">Type</label>
-                                <select
-                                    id="type"
+                                <CustomSelect
                                     name="type"
-                                    className="flex h-10 w-full rounded-md border border-neutral-200 bg-white/50 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-neutral-900 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 dark:border-neutral-800 dark:bg-neutral-900/50 dark:focus:ring-neutral-300 dark:focus:ring-offset-neutral-950 appearance-none"
+                                    options={TYPE_OPTIONS}
+                                    defaultValue="note"
                                     required
-                                >
-                                    <option value="note">Note</option>
-                                    <option value="insight">Insight</option>
-                                    <option value="link">Link</option>
-                                </select>
+                                />
                             </div>
                         </div>
 

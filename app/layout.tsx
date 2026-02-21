@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
-import { Brain, Search, PlusCircle, Settings, MessageSquare } from "lucide-react";
+import { Brain, Search, PlusCircle, MessageSquare } from "lucide-react";
 import Link from "next/link";
 
 const inter = Inter({
@@ -46,12 +46,6 @@ export default function RootLayout({
               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" /><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" /></svg>
               <span>Architecture Docs</span>
             </Link>
-            <div className="md:mt-auto pt-4 md:pt-8 md:border-t border-neutral-200 dark:border-neutral-800 hidden md:flex">
-              <Link href="/settings" className="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors w-full">
-                <Settings className="w-4 h-4" />
-                <span>Settings</span>
-              </Link>
-            </div>
           </div>
         </nav>
 

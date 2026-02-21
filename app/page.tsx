@@ -10,6 +10,7 @@ import { Skeleton } from '@/app/components/ui/Skeleton';
 import { format } from 'date-fns';
 import { Search, Filter, BookOpen, Link as LinkIcon, Lightbulb, ExternalLink, MessageSquare, Trash2, Edit3 } from 'lucide-react';
 import Link from 'next/link';
+import { DeleteConfirmationModal } from '@/app/components/DeleteConfirmationModal';
 
 interface KnowledgeItem {
   id: number;
@@ -24,6 +25,9 @@ interface KnowledgeItem {
 export default function Dashboard() {
   const [items, setItems] = useState<KnowledgeItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+
+  const [itemToDelete, setItemToDelete] = useState<number | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   // Filters
   const [searchQuery, setSearchQuery] = useState('');
@@ -60,17 +64,21 @@ export default function Dashboard() {
     fetchItems();
   }, [debouncedSearch, selectedType]);
 
-  const handleDelete = async (id: number) => {
-    if (!confirm('Are you sure you want to delete this item?')) return;
+  const confirmDelete = async () => {
+    if (itemToDelete === null) return;
+    setIsDeleting(true);
 
     try {
-      const res = await fetch(`/api/knowledge/${id}`, { method: 'DELETE' });
+      const res = await fetch(`/api/knowledge/${itemToDelete}`, { method: 'DELETE' });
       if (!res.ok) throw new Error('Failed to delete');
 
-      setItems(prev => prev.filter(item => item.id !== id));
+      setItems(prev => prev.filter(item => item.id !== itemToDelete));
     } catch (error) {
       console.error('Error deleting item:', error);
       alert('Failed to delete item.');
+    } finally {
+      setIsDeleting(false);
+      setItemToDelete(null);
     }
   };
 
@@ -232,7 +240,7 @@ export default function Dashboard() {
                             </button>
                           </Link>
                           <button
-                            onClick={() => handleDelete(item.id)}
+                            onClick={() => setItemToDelete(item.id)}
                             className="p-1.5 text-neutral-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-md transition-colors"
                             title="Delete Item"
                           >
@@ -258,6 +266,15 @@ export default function Dashboard() {
           </AnimatePresence>
         )}
       </div>
+
+      <DeleteConfirmationModal
+        isOpen={itemToDelete !== null}
+        onClose={() => setItemToDelete(null)}
+        onConfirm={confirmDelete}
+        isDeleting={isDeleting}
+        title="Delete Knowledge Item"
+        description="Are you sure you want to delete this item? This action will permanently remove it from your knowledge base."
+      />
     </div>
   );
 }
