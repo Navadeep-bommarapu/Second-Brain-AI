@@ -38,14 +38,14 @@ export async function POST(req: NextRequest) {
         if (process.env.GOOGLE_API_KEY) {
             try {
                 const { text: generatedSummary } = await generateText({
-                    model: google('gemini-1.5-flash'),
+                    model: google('gemini-2.5-flash'),
                     prompt: `Summarize the following content in 1-2 thoughtful sentences:\n\nTitle: ${title}\nContent:\n${content}`,
                 });
                 summary = generatedSummary.trim();
 
                 if (!finalTags || finalTags.trim() === '') {
                     const { text: generatedTags } = await generateText({
-                        model: google('gemini-1.5-flash'),
+                        model: google('gemini-2.5-flash'),
                         prompt: `Extract exactly 3 concise, comma-separated tags (only letters and commas) from the following text:\n\nTitle: ${title}\nContent:\n${content}`,
                     });
                     finalTags = generatedTags.trim().replace(/\s+/g, '').toLowerCase(); // Clean up tags

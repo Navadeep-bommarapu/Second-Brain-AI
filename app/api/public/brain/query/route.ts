@@ -34,7 +34,7 @@ export async function GET(req: NextRequest) {
             const contextString = relevantItems.map(item => `Title: ${item.title}\nContent: ${item.content}`).join('\n\n');
 
             const { text } = await generateText({
-                model: google('gemini-1.5-flash'),
+                model: google('gemini-2.5-flash'),
                 prompt: `You are answering a query from a user's personal knowledge base.\n\nQuery: ${query}\n\nContext:\n${contextString}\n\nAnswer concisely based ONLY on the provided context.`,
             });
             answer = text.trim();
