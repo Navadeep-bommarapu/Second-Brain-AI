@@ -29,14 +29,19 @@ export default function RootLayout({
         <AuthProvider>
           {/* Sidebar Nav (Desktop) / Top Nav (Mobile) */}
           <nav className="w-full md:w-64 border-b md:border-b-0 md:border-r border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-950 p-4 shrink-0 flex flex-col z-10">
-            <div className="flex items-center gap-3 mb-4 md:mb-8 font-semibold text-lg shrink-0">
-              <div className="bg-neutral-900 dark:bg-white text-white dark:text-neutral-900 p-1.5 rounded-lg">
-                <Brain className="w-5 h-5" />
+            <div className="flex items-center justify-between mb-4 md:mb-8 shrink-0">
+              <div className="flex items-center gap-3 font-semibold text-lg">
+                <div className="bg-neutral-900 dark:bg-white text-white dark:text-neutral-900 p-1.5 rounded-lg">
+                  <Brain className="w-5 h-5" />
+                </div>
+                Second Brain
               </div>
-              Second Brain
+              <div className="md:hidden">
+                <AuthButton />
+              </div>
             </div>
 
-            <div className="flex flex-row md:flex-col gap-2 overflow-x-auto pb-2 md:pb-0 shrink-0">
+            <div className="flex gap-2 overflow-x-auto pb-2 md:pb-0 shrink-0 hide-scrollbar md:flex-col">
               <Link href="/" className="flex shrink-0 items-center gap-3 px-3 py-2 rounded-md hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors">
                 <Search className="w-4 h-4" />
                 <span>Dashboard</span>
@@ -57,7 +62,7 @@ export default function RootLayout({
           </nav>
 
           {/* Main Content Area */}
-          <main className="flex-1 min-w-0 p-4 sm:p-6 md:p-8 lg:p-12 overflow-y-auto relative bg-neutral-50 dark:bg-neutral-950">
+          <main className="flex-1 min-w-0 p-4 sm:p-6 md:p-8 lg:p-12 overflow-y-auto relative bg-neutral-50 dark:bg-neutral-950 w-full">
             <div className="max-w-5xl mx-auto w-full h-full">
               {children}
             </div>

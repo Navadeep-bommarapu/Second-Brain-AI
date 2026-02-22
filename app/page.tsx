@@ -279,12 +279,12 @@ export default function Dashboard() {
       </div>
 
       {status === 'unauthenticated' && (
-        <div className="absolute inset-0 z-50 flex flex-col items-center pt-[15vh]">
+        <div className="absolute inset-0 z-50 flex flex-col items-center pt-[15vh] px-4">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ type: "spring", damping: 25, stiffness: 200 }}
-            className="bg-white/80 dark:bg-neutral-900/80 backdrop-blur-xl border border-neutral-200/50 dark:border-neutral-800/50 p-8 sm:p-10 rounded-3xl shadow-2xl max-w-md w-full text-center flex flex-col items-center"
+            className="bg-white/80 dark:bg-neutral-900/80 backdrop-blur-xl border border-neutral-200/50 dark:border-neutral-800/50 p-6 sm:p-10 rounded-3xl shadow-2xl max-w-md w-full text-center flex flex-col items-center"
           >
             <div className="bg-blue-50 dark:bg-blue-900/30 p-4 rounded-full mb-6 shadow-inner shadow-blue-500/10">
               <Sparkles className="w-8 h-8 text-blue-600 dark:text-blue-400" />
