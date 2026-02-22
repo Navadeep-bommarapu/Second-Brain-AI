@@ -1,17 +1,24 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createKnowledgeItem, getKnowledgeItems } from '@/lib/queries';
 import { GoogleGenerativeAI } from '@google/generative-ai';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth';
 
 const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY || '');
 
 export async function GET(req: NextRequest) {
+    const session = await getServerSession(authOptions);
+    if (!session || !session.user?.email) {
+        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const searchParams = req.nextUrl.searchParams;
     const type = searchParams.get('type') || undefined;
     const search = searchParams.get('q') || undefined;
     const tag = searchParams.get('tag') || undefined;
 
     try {
-        const items = await getKnowledgeItems(type, search, tag);
+        const items = await getKnowledgeItems(session.user.email, type, search, tag);
         return NextResponse.json(items);
     } catch (error) {
         console.error('Failed to fetch knowledge items:', error);
@@ -20,6 +27,11 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
+    const session = await getServerSession(authOptions);
+    if (!session || !session.user?.email) {
+        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     try {
         const body = await req.json();
         const { title, content, type, tags, url } = body;
@@ -63,6 +75,7 @@ export async function POST(req: NextRequest) {
             type,
             tags: finalTags,
             summary,
+            user_email: session.user.email,
         });
 
         return NextResponse.json(newItem, { status: 201 });

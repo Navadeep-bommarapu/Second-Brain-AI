@@ -7,13 +7,14 @@ const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY || '');
 export async function GET(req: NextRequest) {
     const searchParams = req.nextUrl.searchParams;
     const query = searchParams.get('q');
+    const userEmail = searchParams.get('user_email');
 
-    if (!query) {
-        return NextResponse.json({ error: 'Missing "q" search parameter.' }, { status: 400 });
+    if (!query || !userEmail) {
+        return NextResponse.json({ error: 'Missing "q" or "user_email" search parameter.' }, { status: 400 });
     }
 
     try {
-        const items = await getKnowledgeItems(undefined, query); // Use basic search for now
+        const items = await getKnowledgeItems(userEmail, undefined, query); // Use basic search for now
 
         // Take the top 5 most relevant items for the public query
         const relevantItems = items.slice(0, 5);

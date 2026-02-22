@@ -6,6 +6,8 @@ import { format } from 'date-fns';
 import { BookOpen, Link as LinkIcon, Lightbulb, ExternalLink, ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 import { ItemActions } from '@/app/components/ItemActions';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth';
 
 export default async function ItemPage({ params }: { params: Promise<{ id: string }> }) {
     const resolvedParams = await params;
@@ -15,7 +17,23 @@ export default async function ItemPage({ params }: { params: Promise<{ id: strin
         notFound();
     }
 
-    const item = await getKnowledgeItemById(itemId);
+    const session = await getServerSession(authOptions);
+    if (!session || !session.user?.email) {
+        return (
+            <div className="flex flex-col items-center justify-center py-32 text-center max-w-md mx-auto">
+                <div className="bg-neutral-100 dark:bg-neutral-800 p-4 rounded-full mb-6">
+                    <BookOpen className="w-8 h-8 text-neutral-500" />
+                </div>
+                <h2 className="text-2xl font-bold mb-3 text-neutral-900 dark:text-neutral-100">Access Denied</h2>
+                <p className="text-neutral-500 mb-8">Please sign in to view this knowledge item.</p>
+                <Link href="/api/auth/signin" className="w-full flex items-center justify-center bg-neutral-900 hover:bg-neutral-800 dark:bg-white dark:hover:bg-neutral-100 text-white dark:text-neutral-900 font-medium h-11 px-8 rounded-md transition-colors">
+                    Sign In
+                </Link>
+            </div>
+        );
+    }
+
+    const item = await getKnowledgeItemById(itemId, session.user.email);
 
     if (!item) {
         notFound();

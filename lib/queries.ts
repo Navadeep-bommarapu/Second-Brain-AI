@@ -7,6 +7,7 @@ export interface KnowledgeItem {
     type: 'note' | 'link' | 'insight';
     tags: string | string[]; // Can be comma-separated or JSON array depending on DB
     summary?: string;
+    user_email?: string;
     created_at: Date;
 }
 
@@ -16,8 +17,8 @@ export async function createKnowledgeItem(item: NewKnowledgeItem): Promise<Knowl
     const client = await pool.connect();
     try {
         const query = `
-      INSERT INTO knowledge (title, content, type, tags, summary)
-      VALUES ($1, $2, $3, $4, $5)
+      INSERT INTO knowledge (title, content, type, tags, summary, user_email)
+      VALUES ($1, $2, $3, $4, $5, $6)
       RETURNING *;
     `;
 
@@ -29,7 +30,7 @@ export async function createKnowledgeItem(item: NewKnowledgeItem): Promise<Knowl
             tagsValue = item.tags.split(',').map(t => t.trim()).filter(Boolean);
         }
 
-        const values = [item.title, item.content, item.type, tagsValue, item.summary || null];
+        const values = [item.title, item.content, item.type, tagsValue, item.summary || null, item.user_email || null];
         const result = await client.query(query, values);
 
         return result.rows[0];
@@ -38,12 +39,12 @@ export async function createKnowledgeItem(item: NewKnowledgeItem): Promise<Knowl
     }
 }
 
-export async function getKnowledgeItems(type?: string, search?: string, tag?: string): Promise<KnowledgeItem[]> {
+export async function getKnowledgeItems(userEmail: string, type?: string, search?: string, tag?: string): Promise<KnowledgeItem[]> {
     const client = await pool.connect();
     try {
-        let query = 'SELECT * FROM knowledge WHERE 1=1';
-        const values: any[] = [];
-        let valueCount = 1;
+        let query = 'SELECT * FROM knowledge WHERE user_email = $1';
+        const values: any[] = [userEmail];
+        let valueCount = 2;
 
         if (type && type !== 'all') {
             query += ` AND type = $${valueCount}`;
@@ -75,11 +76,18 @@ export async function getKnowledgeItems(type?: string, search?: string, tag?: st
     }
 }
 
-export async function getKnowledgeItemById(id: number): Promise<KnowledgeItem | undefined> {
+export async function getKnowledgeItemById(id: number, userEmail?: string): Promise<KnowledgeItem | undefined> {
     const client = await pool.connect();
     try {
-        const query = 'SELECT * FROM knowledge WHERE id = $1';
-        const result = await client.query(query, [id]);
+        let query = 'SELECT * FROM knowledge WHERE id = $1';
+        const values: any[] = [id];
+
+        if (userEmail) {
+            query += ' AND user_email = $2';
+            values.push(userEmail);
+        }
+
+        const result = await client.query(query, values);
         return result.rows[0];
     } finally {
         client.release();
@@ -126,12 +134,18 @@ export async function updateKnowledgeItem(id: number, updates: UpdateKnowledgeIt
             return undefined; // Nothing to update
         }
 
-        const query = `
+        let query = `
             UPDATE knowledge 
             SET ${setClauses.join(', ')} 
-            WHERE id = $1 
-            RETURNING *;
+            WHERE id = $1
         `;
+
+        if (updates.user_email) {
+            query += ` AND user_email = $${valueCount++}`;
+            values.push(updates.user_email);
+        }
+
+        query += ` RETURNING *;`;
 
         const result = await client.query(query, values);
         return result.rows[0];
@@ -140,12 +154,40 @@ export async function updateKnowledgeItem(id: number, updates: UpdateKnowledgeIt
     }
 }
 
-export async function deleteKnowledgeItem(id: number): Promise<boolean> {
+export async function deleteKnowledgeItem(id: number, userEmail?: string): Promise<boolean> {
     const client = await pool.connect();
     try {
-        const query = 'DELETE FROM knowledge WHERE id = $1 RETURNING id;';
-        const result = await client.query(query, [id]);
+        let query = 'DELETE FROM knowledge WHERE id = $1';
+        const values: any[] = [id];
+
+        if (userEmail) {
+            query += ' AND user_email = $2';
+            values.push(userEmail);
+        }
+
+        query += ' RETURNING id;';
+        const result = await client.query(query, values);
         return result.rowCount ? result.rowCount > 0 : false;
+    } finally {
+        client.release();
+    }
+}
+
+export async function ensureUserExists(name: string, email: string, image: string): Promise<void> {
+    const client = await pool.connect();
+    try {
+        // Check if user already exists in the new users table
+        const checkQuery = "SELECT id FROM users WHERE email = $1";
+        const checkResult = await client.query(checkQuery, [email]);
+
+        if (checkResult.rows.length === 0) {
+            // Create user
+            const insertQuery = `
+                INSERT INTO users (name, email, image)
+                VALUES ($1, $2, $3)
+            `;
+            await client.query(insertQuery, [name, email, image]);
+        }
     } finally {
         client.release();
     }

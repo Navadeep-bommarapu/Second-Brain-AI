@@ -1,7 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getKnowledgeItemById, updateKnowledgeItem, deleteKnowledgeItem } from '@/lib/queries';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth';
 
 export async function PATCH(req: NextRequest, context: { params: Promise<{ id: string }> }) {
+    const session = await getServerSession(authOptions);
+    if (!session || !session.user?.email) {
+        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     try {
         const resolvedParams = await context.params;
         const itemId = parseInt(resolvedParams.id, 10);
@@ -11,7 +18,9 @@ export async function PATCH(req: NextRequest, context: { params: Promise<{ id: s
 
         const body = await req.json();
 
-        // Perform the partial update
+        // Perform the partial update. Note: We only allow updating if it belongs to the user
+        // We ensure it belongs to the user by passing user_email to the update
+        body.user_email = session.user.email;
         const updatedItem = await updateKnowledgeItem(itemId, body);
 
         if (!updatedItem) {
@@ -26,6 +35,11 @@ export async function PATCH(req: NextRequest, context: { params: Promise<{ id: s
 }
 
 export async function DELETE(req: NextRequest, context: { params: Promise<{ id: string }> }) {
+    const session = await getServerSession(authOptions);
+    if (!session || !session.user?.email) {
+        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     try {
         const resolvedParams = await context.params;
         const itemId = parseInt(resolvedParams.id, 10);
@@ -33,12 +47,12 @@ export async function DELETE(req: NextRequest, context: { params: Promise<{ id: 
             return NextResponse.json({ error: 'Invalid ID' }, { status: 400 });
         }
 
-        const existingItem = await getKnowledgeItemById(itemId);
+        const existingItem = await getKnowledgeItemById(itemId, session.user.email);
         if (!existingItem) {
             return NextResponse.json({ error: 'Item not found' }, { status: 404 });
         }
 
-        const deleted = await deleteKnowledgeItem(itemId);
+        const deleted = await deleteKnowledgeItem(itemId, session.user.email);
 
         if (!deleted) {
             return NextResponse.json({ error: 'Failed to delete item' }, { status: 500 });

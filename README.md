@@ -78,6 +78,14 @@ Want to run this app yourself? Here is the step-by-step guide:
 ### 1. Database Setup
 Ensure your PostgreSQL instance contains a database named `second_brain`. Run this SQL query to create the table:
 ```sql
+CREATE TABLE users (
+  id SERIAL PRIMARY KEY,
+  name VARCHAR(255) NOT NULL,
+  email VARCHAR(255) UNIQUE NOT NULL,
+  image TEXT,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
 CREATE TABLE knowledge (
   id SERIAL PRIMARY KEY,
   title VARCHAR(255) NOT NULL,
@@ -85,6 +93,7 @@ CREATE TABLE knowledge (
   type VARCHAR(50) NOT NULL,
   tags TEXT,
   summary TEXT,
+  user_email VARCHAR(255) REFERENCES users(email) ON DELETE CASCADE,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 ```
@@ -96,7 +105,7 @@ Create a `.env.local` file at the root of the project:
 DATABASE_URL=postgresql://postgres:YOUR_PASSWORD@localhost:5432/second_brain
 
 # Gemini API Key for AI features (Summarization, Auto-tag, Chat)
-GOOGLE_GENERATIVE_AI_API_KEY=your_gemini_api_key_here
+GOOGLE_API_KEY=your_gemini_api_key_here
 ```
 
 ### 3. Run the App

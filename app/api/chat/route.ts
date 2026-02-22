@@ -1,11 +1,18 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { getKnowledgeItemById } from '@/lib/queries';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth';
 
 export const maxDuration = 30;
 
 const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY || '');
 
 export async function POST(req: Request) {
+    const session = await getServerSession(authOptions);
+    if (!session || !session.user?.email) {
+        return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers: { 'Content-Type': 'application/json' } });
+    }
+
     try {
         const { messages, itemId } = await req.json();
 
@@ -19,7 +26,7 @@ export async function POST(req: Request) {
         let contextString = 'No specific context provided. You are a general AI assistant.';
 
         if (itemId) {
-            const item = await getKnowledgeItemById(Number(itemId));
+            const item = await getKnowledgeItemById(Number(itemId), session.user.email);
             if (item) {
                 contextString = `
                 You are discussing a specific item from the user's knowledge base.
