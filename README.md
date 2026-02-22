@@ -106,12 +106,36 @@ DATABASE_URL=postgresql://postgres:YOUR_PASSWORD@localhost:5432/second_brain
 
 # Gemini API Key for AI features (Summarization, Auto-tag, Chat)
 GOOGLE_API_KEY=your_gemini_api_key_here
+
+# NextAuth Configuration
+NEXTAUTH_URL=http://localhost:3000
+NEXTAUTH_SECRET=generate_a_random_secret_string
+
+# Google OAuth Configuration
+GOOGLE_CLIENT_ID=your_google_client_id_here
+GOOGLE_CLIENT_SECRET=your_google_client_secret_here
 ```
 
-### 3. Run the App
+### 3. Run the App Locally
 Install dependencies and strictly run the server:
 ```bash
 npm install
 npm run dev
 ```
 The app will start on [http://localhost:3000](http://localhost:3000).
+
+### 4. Vercel Deployment Guide
+When deploying to Vercel, you need to add your environment variables to the project settings.
+
+**Here is exactly how to configure NextAuth variables on Vercel:**
+- `DATABASE_URL`: Your live production PostgreSQL connection string (Supabase, Neon, etc).
+- `GOOGLE_API_KEY`: Your live API key.
+- `GOOGLE_CLIENT_ID`: Your live client ID.
+- `GOOGLE_CLIENT_SECRET`: Your live client secret.
+- `NEXTAUTH_SECRET`: A secure random 32-character string. Just type `openssl rand -base64 32` in bash or use a random password generator.
+- `NEXTAUTH_URL`: **DO NOT PROVIDE THIS VARIABLE ON VERCEL.** Vercel injects the deployment URL automatically! If you specify it manually, it may break preview deployments.
+
+**Google Developer Console Update:**
+Don't forget to go back to the Google Developer console and add your live Vercel URL to your web client configuration:
+- Authorized JavaScript origins: `https://your-app-name.vercel.app`
+- Authorized redirect URIs: `https://your-app-name.vercel.app/api/auth/callback/google`
